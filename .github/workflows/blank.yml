@@ -1,0 +1,104 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]@echo off
+REM Wymaga: JDK 21 + Gradle w PATH
+if not exist gradlew.bat call gradle wrapper
+call gradlew.bat build
+echo Gotowe! Jar jest w folderze build\libs
+pause
+
+#!/usr/bin/env bash
+# Wymaga: JDK 21 + Gradle w PATH (albo gradlew, jeśli już wygenerowany)
+set -e
+if [ ! -f gradlew ]; then gradle wrapper; fi
+./gradlew build
+echo "Gotowe: $(ls build/libs/*.jar | grep -v sources)"
+
+# Cheaty – Fabric 1.21.11 (client side)
+
+Moduły: KillAura, Hitboxes, Fly, Speed, Reach, Step, Fullbright, AutoSprint, ESP (glow).
+Prawy Shift = menu z przełącznikami i suwakami.
+
+## Budowanie (1 klik)
+1. Zainstaluj JDK 21 i Gradle (https://gradle.org/install/).
+2. Uruchom `build.bat` (Windows) albo `./build.sh` (Linux/Mac).
+3. Jar: `build/libs/cheaty-1.0.0.jar` -> do `.minecraft/mods` (+ Fabric Loader i Fabric API).
+
+Jeśli Gradle krzyczy o wersje: https://fabricmc.net/develop -> wybierz 1.21.11 -> skopiuj
+yarn_mappings / loader_version / fabric_version do gradle.properties i wersję loom do build.gradle.
+
+plugins {
+    id 'fabric-loom' version '1.14-SNAPSHOT'
+}
+
+version = project.mod_version
+group = 'pl.cheaty'
+base { archivesName = 'cheaty' }
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") { expand "version": project.version }
+}
+
+tasks.withType(JavaCompile).configureEach { options.release = 21 }
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+org.gradle.jvmargs=-Xmx2G
+# Sprawdź aktualne wartości na https://fabricmc.net/develop (wybierz 1.21.11)
+minecraft_version=1.21.11
+yarn_mappings=1.21.11+build.3
+loader_version=0.18.2
+fabric_version=0.139.4+1.21.11
+mod_version=1.0.0
+
+pluginManagement {
+    repositories {
+        maven { url = 'https://maven.fabricmc.net/' }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
